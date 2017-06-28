@@ -1,0 +1,19 @@
+[
+	{
+		"name":"Villa",
+		"code":"V01"
+	},
+	{
+		"name":"Appartement",
+		"code":"A01"
+	},
+	{
+		"name":"Studio",
+		"code":"S01"
+	},
+	{
+		"name":"Duplex",
+		"code":"D01"
+	}
+
+]

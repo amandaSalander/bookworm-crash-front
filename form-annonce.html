@@ -1,0 +1,299 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/iron-form/iron-form.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="bower_components/file-input/file-input.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/iron-image/iron-image.html">
+
+<link rel="import" href="bower_components/paper-card/paper-card.html">
+
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+
+
+<!--
+A comment describing this element
+
+Example:
+
+    <my-elem></my-elem>
+
+Example:
+
+    <my-elem>
+      <h2>Hello my-elem</h2>
+    </my-elem>
+
+@demo demo/index.html
+-->
+
+<dom-module id="form-annonce">
+	<template>
+		<style is="custom-style" include="iron-flex">
+			:host {
+				display: block;
+			}
+			paper-dropdown-menu, paper-listbox {
+			    width: 350px;
+			}
+			paper-dropdown-menu {
+			    /*height: 200px;*/
+			    margin: auto;
+			    display: block;
+			}
+			paper-card{
+				margin-left: 10%;
+				width: 70%;
+				margin-top: 20px;
+				margin-bottom: 200px;
+			}
+			.form-part-one{
+				margin-right: 20px;
+			}
+			#localiser{
+				color: #433679;
+				height: 40px;
+				margin-top: 15px;
+				margin-left: 10px;
+			}
+		</style>
+
+		
+
+
+		<iron-ajax
+		 	auto
+		 	url="region.json"
+		 	handle-as="json"
+		 	last-response="{{regions}}"></iron-ajax>
+
+
+		<iron-ajax
+		 	auto
+		 	url="types.json"
+		 	handle-as="json"
+		 	last-response="{{types}}"></iron-ajax> 	
+		
+
+		<firebase-document
+		    id="document"
+		    app-name="firebaseApp"
+		    path="[[annoncePath]]"
+		    data="{{annonceForm}}">
+		</firebase-document>
+
+		<firebase-document
+		    id="meine-annonce"
+		    app-name="firebaseApp"
+		    path="[[meineAnnoncePath]]"
+		    data="{{annonceForm}}">
+		</firebase-document>
+
+
+		<paper-card  elevation="5" animated-shadow="false">
+		  <div class="card-content">
+		  		
+
+
+		  		<form is="iron-form" id="form" method="post" action="/form/handler">
+				
+					<paper-input label="proprietaire {{user.displayName}}" disabled></paper-input>
+			  		<div class="layout horizontal">
+
+
+		  				<div class="form-part-one">
+							
+
+							<paper-dropdown-menu label="Type annonce" >
+							  <paper-listbox class="dropdown-content" selected="{{selectedType}}">
+							    <template is="dom-repeat" items="{{types}}">	
+							    	<paper-item>{{item.name}} {{item.code}}</paper-item>
+							    </template>
+							  </paper-listbox>
+							</paper-dropdown-menu>
+
+
+							<paper-input label="Prix du logement (DZD)" type="number" value="{{prix}}"></paper-input>
+
+							<paper-input label="Superficie" type="number" value="{{superficie}}"></paper-input>
+
+
+							<paper-dropdown-menu label="Region/ Wilaya">
+							  <paper-listbox class="dropdown-content" selected="{{selected}}">
+							    <template is="dom-repeat" items="{{regions}}">	
+							    	<paper-item>{{item.name}} {{item.code}}</paper-item>
+							    </template>
+							  </paper-listbox>
+							</paper-dropdown-menu>
+
+						</div>
+
+						<div>
+							<div class="layout horizontal">
+								<paper-input id="address" label="Adresse" value="{{address}}"></paper-input>
+								<paper-button id="localiser" on-tap="locate" raised>Localiser</paper-button>
+							</div>	
+							<paper-textarea label="detail" rows="3" value="{{detail}}"></paper-textarea>
+
+							<paper-button raised >
+								
+							<file-input on-tap="upload" id="inputFile" accept="image/*" maxFiles="3" files="{{files}}"  >Put your pictures here</file-input>
+							</paper-button>
+							
+							<template is="dom-if" if="{{files}}">
+								<template is="dom-repeat" items="{{files}}" as="file">
+									<label>{{file.name}}</label>
+									<iron-image src="{{file.name}}"  preload sizing="cover"></iron-image>
+								</template>
+							</template>
+							<template is="dom-if" if="{{!files}}">
+								no pic choosen yet
+							</template>
+							<p></p>
+							<paper-button raised on-tap="save">save</paper-button>
+						</div>
+
+					</div>
+				</form>
+
+
+		  </div>
+		</paper-card>	
+				
+	</template>
+	<script>
+		Polymer({
+			is: 'form-annonce',
+			properties:{
+				files:{
+					type:Array,
+					value:["name","file"],
+					observer:"_changedFiles"
+				},
+				user:Object,
+				annoncePath:{
+					type:String,
+					computed:"_computedAnnoncePath(selectedRegion, selectedTypeAnnonce)"
+				},
+				meineAnnoncePath:{
+					type:String,
+					computed:"_computedMeineAnnoncePath(user)"	
+				},
+				selectedRegion:{
+					type:String,
+					value:"alger",
+					computed:"_computedSelectedRegion(selected, regions)"
+
+				},
+				selected:{
+					type:Number,
+					value:0
+				},
+				types:Array,
+				selectedType:{
+					type:Number,
+					value:0
+				},
+				selectedTypeAnnonce:{
+					type:String,
+					value:"studio",
+					computed:"_computedSelectedTypeAnnonce(selectedType, types)"
+				},
+				prix:{
+					type:Number,
+					value:0
+				},
+				superficie:{
+					type:Number,
+					value:0
+				},
+				address:{
+					type:String,
+					value:" "
+				},
+				detail:{
+					type:String,
+					value:" "
+				},
+				annonceForm:{
+					type:Object,
+					computed:"_computedAnnonceForm(selectedTypeAnnonce, selectedRegion, user, superficie, prix, detail, address)"
+				},
+				regions:Array
+			},
+			_computedSelectedRegion: function(selected, regions){
+				console.log(regions[selected].name.toLocaleLowerCase())
+				return regions[selected].name.toLocaleLowerCase();
+			},
+			_computedAnnoncePath:function(selectedRegion, selectedTypeAnnonce){
+				return "annonces/"+selectedTypeAnnonce+"/"+selectedRegion+"/";
+			},
+			_computedMeineAnnoncePath:function(user){
+				return "users/"+user.uid+"/";
+			},
+			_computedSelectedTypeAnnonce(selectedType, types){
+				console.log(types[selectedType].name.toLocaleLowerCase());
+				return types[selectedType].name.toLocaleLowerCase();
+			},
+			_computedAnnonceForm: function(selectedTypeAnnonce, selectedRegion, user, superficie, prix, detail,address){
+				if(user){
+					if (user.displayName)
+					return {
+							type: selectedTypeAnnonce,
+							region: selectedRegion,
+							proprietaire: user.displayName,
+							superficie: superficie,
+							prix:prix,
+							detail:detail,
+							address:address
+					}
+					else
+					return {
+							type: selectedTypeAnnonce,
+							region: selectedRegion,
+							proprietaire: user.email,
+							superficie: superficie,
+							prix:prix,
+							detail:detail,
+							address:address
+					}
+				}
+			},
+			save:function(){
+				if (this.$.document.isNew ) {
+          			
+          			this.$.document.save(this.annoncePath).then(function() {
+            			this.$.document.reset();
+          			}.bind(this));
+				}
+
+				if (this.$["meine-annonce"].isNew ) {
+          			
+          			this.$["meine-annonce"].save(this.meineAnnoncePath).then(function() {
+            			this.$["meine-annonce"].reset();
+          			}.bind(this));
+				}
+
+			},
+			upload:function(e){
+				this.files=this.$.inputFile.files;
+			},
+			_changedFiles:function(newO, old){
+				console.log(old);
+				console.log(newO);
+			},
+			showPosition:function (position){	
+				console.log(this.$.address);
+				// a.value= position.toString();
+			},
+			locate:function(event){
+				
+				navigator.geolocation.getCurrentPosition(this.showPosition);
+			}
+		});
+	</script>
+</dom-module>

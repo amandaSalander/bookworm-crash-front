@@ -1,0 +1,84 @@
+<link rel="import" href="bower_components/polymer-redux/polymer-redux.html">
+
+<script>
+
+const connection={
+		IS_ANONYMOUS:"IS_ANONYMOUS",
+		SIGN_OUT:"SIGN_OUT",
+		HEADER_CHANGED:"HEADER_CHANGED",
+		DETAIL_AFFICHER:"DETAIL_AFFICHER",
+		DETAIL_FERMEE:"DETAIL_FERMEE"
+	}; 
+
+/*INITIAL STATE*/
+	const initialState={
+		isAnonymous:false,
+		header:"Les Annonces",
+		detail:false,
+		user:null
+	}
+
+
+	const reducer = (state, action)=>{
+		if (!state){
+		 	return initialState;
+		}
+		else{
+			switch(action.type){
+				case connection.IS_ANONYMOUS:
+					return Object.assign({},state, {isAnonymous:true});
+				break;
+				case connection.SIGN_OUT:
+					return Object.assign({},state, {isAnonymous:false});
+				break;
+				case connection.HEADER_CHANGED:
+					return	Object.assign({},state, {header:action.header});
+				break;
+				case connection.DETAIL_AFFICHER:
+					return	Object.assign({},state, {detail:true});
+				break;
+				case connection.DETAIL_FERMEE:
+					return	Object.assign({},state, {detail:false});
+				break;
+			}
+		}
+	}
+
+
+	const store= Redux.createStore(reducer, Redux.applyMiddleware(ReduxThunk.default));
+
+	const ReduxBehavior = PolymerRedux(store);
+
+
+	const connectionBehavior={
+		actions:{
+			isAnonymousConnection: function(){
+				return function(dispatch){
+				dispatch({type: connection.IS_ANONYMOUS});
+				};
+			},
+			signOut: function(){
+				return function(dispatch){
+				dispatch({type: connection.SIGN_OUT});
+				};
+			},
+			headerChanged:function (header) {
+				return function(dispatch){
+				dispatch({type: connection.HEADER_CHANGED, header:header});
+				};
+			},
+			afficherDetail:function () {
+				return function(dispatch){
+				dispatch({type: connection.DETAIL_AFFICHER});
+				};
+			},
+			fermerDetail:function () {
+				return function(dispatch){
+				dispatch({type: connection.DETAIL_FERMEE});
+				};
+			},
+		}
+	};
+
+
+</script>

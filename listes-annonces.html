@@ -1,0 +1,160 @@
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-card/paper-card.html">
+
+
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="bower_components/paper-styles/color.html">
+<link rel="import" href="bower_components/paper-styles/typography.html">
+
+
+<link rel="import" href="redux-store.html">
+<link rel="import" href="detail-annonce.html">
+
+<!--
+`firebase-form-homes`
+form to save annonces in firebase database
+
+@demo demo/index.html 
+-->
+
+<dom-module id="listes-annonces">
+  <template>
+    <style is="custom-style">
+      :host{
+        display: block;
+      }
+      paper-card {
+		max-width: 500px;
+		margin-bottom: 10px;
+		margin-top: 20px;
+		/*padding-top: 10px;*/
+	  }
+	  .cafe-header { @apply --paper-font-headline; }
+	  .cafe-light { color: var(--paper-grey-600); }
+	  .cafe-location {
+	float: right;
+	font-size: 15px;
+	vertical-align: middle;
+	  }
+	  .cafe-reserve { color: var(--google-blue-500); }
+	  iron-icon.star {
+	--iron-icon-width: 16px;
+	--iron-icon-height: 16px;
+	color: var(--paper-amber-500);
+	  }
+  	iron-icon.star:last-of-type { color: var(--paper-grey-500); }
+  	paper-listbox{
+  		margin-top: 20px;
+  		--paper-listbox-background-color:rgb(217,67,57);
+  	}
+    </style>
+
+
+<!-- url="http://192.168.43.136:3000/graphql?" -->
+    <iron-ajax
+      id="ajax"
+      auto
+      method="POST"
+      headers="{{headers}}"
+      body="{{val}}"
+      url="http://192.168.43.136:3000/graphql?"
+      last-response="{{body}}"
+    >  
+    </iron-ajax>
+
+
+
+    <!-- <paper-card image="demo/donuts.png"> -->
+    <template is='dom-if' if="[[!detail]]">
+	    <paper-listbox selected="{{selected}}">
+	    <template is="dom-repeat" items="[[liste]]" as="annonce">
+		  <paper-card>
+			  <div class="card-content">
+			    <!-- <div class="cafe-header">Cafe Basilico -->
+			    <div class="cafe-header">[[annonce.designation]]
+			      <div class="cafe-location cafe-light">
+			        <!-- <iron-icon icon="search"></iron-icon> -->
+			        <!-- <span>[[annonce.typeLogement]]</span> -->
+			      </div>
+			    </div>
+			    <!-- <label>Note :[[annonce.note]]</label> -->
+			    <div class="cafe-rating">
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			    </div>
+			    <p>[[annonce.prix]] DZD・[[annonce.wilaya]], [[annonce.commune]] ([[annonce._proprietaire.firstname]] [[annonce._proprietaire.lastname]])</p>
+			    <p class="cafe-light">[[annonce.adresse]]</p>
+			  </div>
+			  <div class="card-actions">
+			    <div class="horizontal justified">
+			      <paper-icon-button icon="icons:event"></paper-icon-button>
+			      <!-- paper-button>5:30PM</paper-button>
+			      <paper-button>7:30PM</paper-button>
+			      <paper-button>9:00PM</paper-button> -->
+			      <paper-button class="cafe-reserve">Reserve</paper-button>
+			      <paper-icon-button icon="communication:location-on"></paper-icon-button>
+			      <paper-button class="cafe-reserve">Localiser</paper-button>
+			    </div>
+			  </div>
+			</paper-card>
+			<br>
+		</template>
+		</paper-listbox>
+	</template>
+
+	<template is="dom-if" if="[[detail]]">
+		  <detail-annonce annonce="[[body.data.annonceId]]"></detail-annonce>
+	</template>			
+  </template>
+
+
+  <script>
+    Polymer({
+
+      is: 'listes-annonces',
+      behaviors:[ReduxBehavior, connectionBehavior],
+      properties:{
+      	liste:Array,
+      	detail:{
+      		type:Boolean,
+      		statePath:"detail"
+      	},
+      	headers:{
+          type:Object,
+          value:{
+            "content-type":"application/json",
+          }
+        },
+        selected:{
+        	type:Number,
+        	observer:"_selectedChanged"
+        },
+        val:{
+          type:Object,
+          // value:{query:'{annonces{id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+          computed:"_computedVal(liste,selected)"
+        }
+      },
+      _computedVal:function(liste,selected){
+      	return {query:'{annonceId(id:"'+liste[selected].id+'"){\n_commentaires{\nid{\n ... on Commentaire{\n  description\n   note\n  }\n}\n }\nid\n_id\ntypeLogement\nlog\nlat\ndescription\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname\n_id}\n}}}\n',variables:null,operationName:null}
+      },
+      _selectedChanged:function(val){
+      	if (val!=undefined){
+      		// this.detail=true;
+          this.dispatch("afficherDetail");
+      	}
+      }
+
+
+
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,392 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+
+<link rel="import" href="bower_components/app-layout/app-layout.html">
+
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="bower_components/paper-progress/paper-progress.html">
+
+<link rel="import" href="bower_components/paper-card/paper-item.html">
+<link rel="import" href="bower_components/paper-card/paper-listbox.html">
+<link rel="import" href="bower_components/paper-card/paper-card.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="bower_components/polymerfire/polymerfire.html">
+
+<link rel="import" href="form-annonce.html">
+<link rel="import" href="listes-annonces.html">
+<link rel="import" href="redux-store.html">
+
+<!--
+`firebase-form-homes`
+form to save annonces in firebase database
+
+@demo demo/index.html 
+-->
+
+<dom-module id="firebase-form-homes">
+  <template>
+    <style is="custom-style">
+      :host,firebase-form-homes {
+        display: block;
+      }
+      h3{
+        display: inline-flex;
+      }
+      paper-card{
+        /*margin-left: 35%;
+        margin-top: 15%;*/
+        margin-top: 30%;
+        @apply(--layout-vertical);
+         @apply(--layout-center);
+
+      }
+      app-toolbar {
+      background-color: #FFF;
+      /*color: #fff;*/
+      width: 102%;
+      margin-left: -20px;
+      margin-top: -20px;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    }
+
+    paper-icon-button {
+      --paper-icon-button-ink-color: white;
+    }
+
+    paper-icon-button + [main-title] {
+      margin-left: 24px;
+    }
+    paper-progress {
+      display: block;
+      width: 100%;
+      --paper-progress-active-color: rgba(255, 255, 255, 0.5);
+      --paper-progress-container-color: transparent;
+    }
+      paper-button{
+          background-color:#FFF;
+          color: rgb(217,67,57);
+          @apply(--layout-vertical);
+        @apply(--layout-center);
+        margin-top: 10px;
+      }
+      paper-input{
+        --paper-input-container-focus-color:rgb(217,67,57);
+      }
+      .head{
+        @apply(--layout-vertical);
+        @apply(--layout-justified);
+      }
+      .welcome{
+        /*margin-top: 20px;*/
+        font-size: 18px;
+        /*margin-left: 10px;*/
+        flex-wrap: wrap;
+        background-color: rgba(217,67,57,1);
+        padding-left: 20px;
+        padding-top: 20px;
+        color: #FFF;
+      }
+      paper-listbox{
+        
+      }
+      .higher{
+        /*z-index: 100;*/
+        position: absolute;
+        margin-right: 20px;
+        top:0px;
+        right: 0px;
+      }
+    </style>
+
+    <!-- url="http://192.168.43.136:3000/graphql?" -->
+    <iron-ajax
+      id="ajax"
+      auto
+      method="POST"
+      headers="{{headers}}"
+      body="{{val}}"
+      url="http://192.168.43.136:3000/graphql?"
+      last-response="{{body}}"
+    >  
+    </iron-ajax>
+
+    <iron-ajax
+      id="ajaxUser"
+      auto
+      method="POST"
+      headers="{{headers}}"
+      body="{{vale}}"
+      url="http://192.168.43.136:3000/graphql?"
+      last-response="{{bodies}}"
+    >  
+    </iron-ajax>
+
+    <firebase-app 
+                  name="firebaseApp"
+                  api-key="AIzaSyAbMn21Q3_3NWCObYgxHxnCsDSHTNaVe-M"
+                  auth-domain="projet-mobile-fde2c.firebaseapp.com"
+                  database-url="https://projet-mobile-fde2c.firebaseio.com"
+                  storage-bucket="projet-mobile-fde2c.appspot.com"
+                  messaging-sender-id="669107117520"
+                  >
+    </firebase-app>
+    
+    <firebase-auth  id="auth"
+                    app-name="firebaseApp"
+                    provider="google"
+                    signed-in="{{signIn}}"
+                    user="{{user}}">
+    </firebase-auth>
+
+    <firebase-auth  id="emailPassword"
+                    app-name="firebaseApp"
+                    provider="email"
+                    signed-in="{{signIn}}"
+                    user="{{user}}">
+    </firebase-auth>
+
+    <firebase-auth  id="anonymous"
+                    app-name="firebaseApp"
+                    provider="anonymous"
+                    signed-in="{{signIn}}"
+                    user="{{user}}">
+    </firebase-auth>
+
+    <template is="dom-if" if="{{!user}}">
+    <div class="head">
+      <paper-card  heading="Sign in" elevation="3" animated-shadow="false">
+        <div class="card-content">
+          
+          <paper-input id="email" label="User name"></paper-input>
+          <paper-input id="pwd" label="Password" type="password"></paper-input>
+
+          <paper-button raised on-tap="sign">sign in</paper-button>
+          <paper-button raised on-tap="signInWithGoogle">sign in with Google</paper-button>
+          <paper-button raised on-tap="signInAnonymous">Continue without sign in</paper-button>          
+
+        </div>
+      </paper-card>
+    </div>  
+    </template>
+
+        <p></p>
+    <template is="dom-if" if="{{user}}">
+
+    <app-header reveals>
+    <app-toolbar>
+        <paper-icon-button icon="menu" onclick="drawer.toggle()"></paper-icon-button>
+        <div main-title>[[header]]</div>
+        <!-- <paper-icon-button icon="delete"></paper-icon-button> -->
+        <paper-icon-button icon="search"></paper-icon-button>
+        
+        <template is="dom-if" if="[[signInAnonymou]]">
+          <paper-icon-button raised on-tap="signOut" icon="close"></paper-icon-button>
+        </template>
+
+        <template is="dom-if" if="[[!signInAnonymou]]">
+          <paper-icon-button raised on-tap="choice" icon="account-circle"></paper-icon-button>
+        </template>
+        
+
+          <template is="dom-if" if="{{menu}}">
+            <paper-listbox class="higher">
+              <paper-item on-tap="signOut">Se deconnecter</paper-item>
+              <paper-item>Mes Annonces</paper-item>
+            </paper-listbox>
+          </template>            
+        </template>
+
+        <!-- <paper-progress value="10" indeterminate bottom-item></paper-progress> -->
+      </app-toolbar>
+    </app-header>
+
+    <template is="dom-if" if="[[user]]">
+      <listes-annonces liste="[[body.data.annonces]]"></listes-annonces>
+    </template>
+
+    <app-drawer id="drawer" swipe-open>
+      <div class="welcome">Welcome {{user.email}}</div>
+      <div class="welcome"></div>
+      <paper-listbox selected="{{selected}}">
+        <paper-item>Tous les logements</paper-item>
+        <paper-item>Les Villas</paper-item>
+        <paper-item>Les Studios</paper-item>
+        <paper-item>Les F2</paper-item>
+        <paper-item>Les F3</paper-item>
+        <paper-item>Les F4</paper-item>
+        <paper-item>Les F5</paper-item>
+      </paper-listbox>
+    </app-drawer>
+    <!-- <sample-content size="10"></sample-content> -->
+
+        <h3></h3>
+        <!-- <paper-button >Sign out</paper-button> -->
+        
+        <!-- <template is="dom-if" if="{{!signInAnonymou}}">
+          hi
+        </template>  
+        
+        <template is="dom-if" if="{{signInAnonymou}}">
+          hello
+        </template> -->
+
+
+    </template>
+
+
+  </template>
+
+
+  <script>
+    Polymer({
+
+      is: 'firebase-form-homes',
+      behaviors:[ReduxBehavior, connectionBehavior],
+      properties: {
+        prop1: {
+          type: String,
+          value: 'firebase-form-homes',
+        },
+        header:{
+          type:String,
+          statePath:"header"
+        },
+        selected:{
+          type:Number,
+          observer:"_selectedChanged"
+        },
+        user:{
+          type:Object,
+          observer:"_signInAnonymouChanged"
+        },
+        signIn:{
+          type:Boolean,
+          notify:true
+        },
+        signInAnonymou:{
+          type:Boolean,
+          statePath:"isAnonymous"
+        },
+        headers:{
+          type:Object,
+          value:{
+            "content-type":"application/json",
+          }
+        },
+        val:{
+          type:Object,
+          value:{query:'{annonces{id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+        },
+        menu:{
+          type:Boolean,
+          value:false
+        },
+        vale:{
+          type:Object,
+          computed:"_computedVale(user)"
+        }
+      },
+      _computedVale:function(user){
+          return {query:'query{\n  memberEmail(email:"ds_baraka@esi.dz"){\n    id\n    firstname\n_annonces{id{... on Annonces{ wilaya\ncommune}}}  }\n}',variables:null,operationName:null}
+      },
+      ready:function () {
+        this.$.ajax.generateRequest();
+      },
+      _selectedChanged:function (selected) {
+        // <paper-item>Tous les logements</paper-item>
+        // <paper-item>Les Villas</paper-item>
+        // <paper-item>Les Studios</paper-item>
+        // <paper-item>Les F2</paper-item>
+        // <paper-item>Les F3</paper-item>
+        // <paper-item>Les F4</paper-item>
+        // <paper-item>Les F5</paper-item>
+
+        if (selected===0){
+          this.val={query:'{annonces{id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+          this.dispatch("headerChanged","Tous les logements");
+        }
+        else if(selected===1){
+          this.val={query:'{annonces(typeLogement:VILLA){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les Villas");
+        }
+        else if(selected===2){
+          this.val={query:'{annonces(typeLogement:STUDIO){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les Studios");
+        }
+        else if(selected===3){
+          this.val={query:'{annonces(typeLogement:F2){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les F2");
+        }
+        else if(selected===4){
+          this.val={query:'{annonces(typeLogement:F3){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les F3");
+        }
+        else if(selected===5){
+          this.val={query:'{annonces(typeLogement:F4){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les F4");
+        }
+        else if(selected===6){
+          this.val={query:'{annonces(typeLogement:F5){id\ntypeLogement\nwilaya\ncommune\nnote\nadresse\nprix\ndesignation\n_proprietaire{\n  ... on Member{\nfirstname\nlastname}\n}}}\n',variables:null,operationName:null}
+            this.dispatch("headerChanged","Les F5");
+        }
+      },
+      signInWithGoogle:function () {
+        this.$.auth.signInWithPopup();
+        // if(this.user.email){
+          // this.$.ajaxUser.body=
+          this.$.ajaxUser.generateRequest();
+
+        // }
+      },
+      sign:function(){
+        email=document.getElementById("email").value;
+        pwd=document.getElementById("pwd").value;
+
+        // console.log(user +" "+pwd);
+
+        this.$.emailPassword.signInWithEmailAndPassword(email, pwd).catch(function(error) {
+            // Handle Errors here.
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            // ...
+        });
+        this.menu=false;
+      },
+      signOut:function(){
+        // this.$.auth.signOut();
+        // this.$.emailPassword.signOut();
+        this.$.anonymous.signOut();
+        this.dispatch("signOut")
+        this.signIn=false;
+        this.signInAnonymou=false;
+        this.user=null;
+      },
+      signInAnonymous:function () {
+        this.$.anonymous.signInAnonymously();
+        this.signInAnonymou=true;
+        this.dispatch("isAnonymousConnection");
+        this.user={}
+      },
+      _signInAnonymouChanged:function (newVal,oldVal) {
+        console.log("newVal "+newVal);
+        console.log("oldVal "+oldVal);
+        
+        if(newVal){
+          if(newVal.isAnonymous){
+            this.dispatch("isAnonymousConnection");
+          }
+          else{
+            this.dispatch("signOut");
+          }
+        }
+      },
+      choice:function () {
+        this.menu=!this.menu
+      }
+
+    });
+  </script>
+</dom-module>

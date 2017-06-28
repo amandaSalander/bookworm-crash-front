@@ -1,0 +1,302 @@
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/google-map/google-map.html">
+<link rel="import" href="bower_components/google-map/google-map-directions.html">
+<link rel="import" href="bower_components/google-map/google-map-point.html">
+<link rel="import" href="bower_components/google-map/google-map-marker.html">
+<link rel="import" href="bower_components/google-map/google-map-poly.html">
+
+
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="bower_components/app-layout/app-layout.html">
+
+<link rel="import" href="redux-store.html">
+
+<dom-module id="detail-annonce">
+	<template>
+		<style>
+			:host{
+		        display: block;
+		        @apply(--layout-vertical);
+		    }
+		    google-map {
+			    height: 200px;
+			}
+		    app-toolbar {
+		      background-color: #FFC107;
+		      /*color: #fff;*/
+		      width: 102%;
+		      margin-left: -20px;
+		      height: :80px;
+		      margin-top: 0px;
+		      box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+		    }
+		    paper-card.get{
+		    	background-color: #FFC107;
+
+		    }
+		    paper-card.com.star{
+		    	
+			--iron-icon-width: 16px;
+			--iron-icon-height: 16px;
+			color: var(--paper-amber-500);
+		    }
+		    paper-card {
+				max-width: 500px;
+				margin-bottom: 5px;
+				margin-top: 10px;
+				/*padding-top: 10px;*/
+			  }
+			  .cafe-header { @apply --paper-font-headline; }
+			  .cafe-light { color: var(--paper-grey-600); }
+			  .cafe-location {
+			float: right;
+			font-size: 15px;
+			vertical-align: middle;
+			  }
+			  .cafe-reserve { color: var(--google-blue-500); }
+			  iron-icon.star {
+			--iron-icon-width: 16px;
+			--iron-icon-height: 16px;
+			color: var(--paper-amber-500);
+			  }
+  			iron-icon.star:last-of-type { color: var(--paper-grey-500); }
+		</style>
+		<!-- [[annonce.description]] -->
+
+
+		 <iron-ajax
+		      id="ajax"
+		      method="POST"
+		      headers="{{headers}}"
+		      body="{{val}}"
+		      url="http://192.168.43.136:3000/graphql?"
+		      last-response="{{body}}"
+		    >  
+		</iron-ajax>
+
+
+
+		 <app-header reveals>
+		    <app-toolbar>
+		        <!-- <paper-icon-button icon="menu" onclick="drawer.toggle()"></paper-icon-button> -->
+		        <paper-icon-button raised on-tap="signOut" icon="arrow-back"></paper-icon-button>
+		        <div main-title>Une Annonce de [[annonce._proprietaire.firstname]] [[annonce._proprietaire.lastname]]</div>
+		        <!-- <paper-icon-button icon="delete"></paper-icon-button> -->
+		        <!-- <paper-icon-button icon="search"></paper-icon-button> -->
+		        
+		        <!-- <paper-progress value="10" indeterminate bottom-item></paper-progress> -->
+		      </app-toolbar>
+		 </app-header>
+		<paper-card>
+			  <div class="card-content">
+			    <!-- <div class="cafe-header">Cafe Basilico -->
+			    <div class="cafe-header">[[annonce.designation]]
+			      <div class="cafe-location cafe-light">
+			        <!-- <iron-icon icon="search"></iron-icon> -->
+			        <!-- <span>[[annonce.typeLogement]]</span> -->
+			      </div>
+			    </div>
+			    <!-- <label>Note :[[annonce.note]]</label> -->
+			    <div class="cafe-rating">
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			      <iron-icon class="star" icon="star"></iron-icon>
+			    </div>
+			    <p>[[annonce.prix]] DZD・[[annonce.wilaya]], [[annonce.commune]] ([[annonce._proprietaire.firstname]] [[annonce._proprietaire.lastname]])</p>
+			    <p class="cafe-light">[[annonce.adresse]]</p>
+			  </div>
+			  <!-- <div class="card-actions">
+			    <div class="horizontal justified">
+			      <paper-icon-button icon="icons:event"></paper-icon-button>
+			      <paper-button class="cafe-reserve">Reserve</paper-button>
+			      <paper-icon-button icon="communication:location-on"></paper-icon-button>
+			      <paper-button class="cafe-reserve">Localiser</paper-button>
+			    </div>
+			  </div> -->
+		</paper-card>
+
+		<paper-card>
+			<div class="card-content">
+			    <!-- <div class="cafe-header">Cafe Basilico -->
+			    <div class="cafe-header">Description
+			    </div>
+			    <!-- <label>Note :[[annonce.note]]</label> -->
+			   
+			    <p>[[annonce.description]]</p>
+			</div>
+		</paper-card>
+
+		<!-- <google-map-directions map="{{map}}"
+		api-key="AIzaSyCgR4hwnMqAgwyZ9SF-YrVdwPf2xwNgquY"
+	      start-address="San Francisco"
+	      end-address="Mountain View"
+	      travel-mode="BICYCLING"
+	      waypoints='[{"location": "Palo Alto"}, {"location": "San Mateo"}]'></google-map-directions>
+        <google-map latitude="37.77493" longitude="-122.41942" ></google-map>  -->
+
+
+
+        <google-map latitude="[[annonce.lat]]" longitude="[[annonce.log]]" min-zoom="9" max-zoom="11"
+              language="en" api-key="AIzaSyCgR4hwnMqAgwyZ9SF-YrVdwPf2xwNgquY">
+	    <google-map-marker latitude="[[annonce.lat]]" longitude="[[annonce.log]]"
+	                       title="Go Giants!" draggable="true" drag-events>
+	      
+	    </google-map-marker>
+	    <google-map-marker latitude="37.779" longitude="-122.3892"
+	                       title="Go Giants!" draggable="true" drag-events>
+	      
+	    </google-map-marker>
+	    
+	  </google-map>
+
+	  <google-map-directions start-address="Boumerdes Algeria" end-address="[[annonce.adresse]]"
+	                         language="en" api-key="AIzaSyCgR4hwnMqAgwyZ9SF-YrVdwPf2xwNgquY"></google-map-directions>     
+		
+	    <template is="dom-if" if="{{!comment}}">                     
+	    <paper-card>
+	    	<div class="card-content">
+	    		<template is="dom-if" if="{{!isAnonymous}}">
+					<paper-icon-button icon="communication:comment"></paper-icon-button>
+					<label>Votre commentaire</label>
+					<paper-input label="Note" type="number" value="{{note}}"></paper-input>
+					<paper-input label="Contenu" value="{{com}}"></paper-input>
+					<paper-button on-tap="commentaireFunction">Commeneter</paper-button>
+
+				</template>	
+	    	</div>
+	    </paper-card>
+	    </template>
+
+
+	    <template is="dom-if" if="{{!rdv}}">                     
+	    <paper-card>
+	    	<div class="card-content">
+	    		<template is="dom-if" if="{{!isAnonymous}}">
+					<paper-icon-button icon="communication:comment"></paper-icon-button>
+					<label>Votre demande</label>
+					<paper-input label="Date"  value="{{date}}"></paper-input>
+					<paper-input label="Contenu" value="{{com}}"></paper-input>
+					<paper-button on-tap="demandeFunction">Commeneter</paper-button>
+
+				</template>	
+	    	</div>
+	    </paper-card>
+	    </template>
+
+		<template is="dom-repeat" items="{{annonce._commentaires}}" as="commentaire">
+			   		
+		
+		
+		<paper-card class="get">
+			<div class="card-content">
+			    <!-- <div class="cafe-header">Cafe Basilico -->
+			    <div class="cafe-header">
+			    </div>
+			    <!-- <label>Note :[[annonce.note]]</label> -->
+			   
+			   	
+
+			   		<paper-card class="com" elevation="4">
+
+						<div class="card-content">
+						    <!-- <div class="cafe-header">Cafe Basilico -->
+						    <div class="cafe-header"> 
+						    <div class="cafe-rating">
+			      				<iron-icon class="star" icon="star"></iron-icon>
+			      				[[commentaire.id.note]]
+			      			</div>	
+						    </div>
+						    <!-- <label>Note :[[annonce.note]]</label> -->
+						   
+						   
+						   		
+						   		[[commentaire.id.description]]
+						</div>
+					</paper-card>
+
+			   	</template>
+
+			   	<template is="dom-if" if="{{!yACommentaire}}">
+			   		pas de commentaires pour le moment
+			   	</template>
+			   	<br>
+			   	<template is="dom-if" if="{{isAnonymous}}">
+			   		Interessant ? laisser un commentaire sur l'annonce, Connectez vous :D
+			   	</template>
+			    <!-- <p>[[annonce.description]]</p> -->
+			</div>
+		</paper-card>
+	</template>
+	<script>
+    Polymer({
+      is: 'detail-annonce',
+      behaviors:[ReduxBehavior, connectionBehavior],
+      properties:{
+      	annonce:{
+      		type:Object
+      	},
+      	isAnonymous:{
+      		type:Boolean,
+      		statePath:"isAnonymous",
+      		notify:true
+      	},
+      	yACommentaire:{
+      		type:Boolean,
+      		computed:"_computedYACommetaire(annonce)"
+      	},
+      	headers:{
+          type:Object,
+          value:{
+            "content-type":"application/json",
+          }
+        },
+        val:{
+          type:Object,
+          
+          computed:"_computedVal(annonce,note,com)"
+
+        },
+        comment:{
+        	type:Boolean,
+        	value:false
+        },
+        rdv:{
+        	type:Boolean,
+        	value:false
+        }
+      },
+      _computedYACommetaire:function (annonce){
+      	if (annonce._commentaires.length==0){
+      		return false
+      	}
+      	else{
+      		return true;
+      	}
+      },
+      signOut:function () {
+      	this.dispatch("fermerDetail");
+      },
+      commentaireFunction:function (e) {
+      	this.$.ajax.generateRequest();
+      	this.comment=true;
+      },
+      demandeFunction:function (e) {
+      	this.$.ajax.generateRequest();
+      	this.rdv=true;
+      },
+      _computedVal:function(annonce,note,com){
+      	return {
+          	// query:'mutation{\n  addCommentaire(_de:"594f9739ea2e9e518d786be9",_annonce:"'+annonce._id+'",note:'+note+',\n  description:"'+com+'"){\n    description\n  }\n}',
+          	// variables:null}
+          	query:'mutation{\n  addCommentaire(_de:"594f9739ea2e9e518d786be9",_annonce:"'+annonce._id+'",note:'+note+',\n  description:"'+com+'"){\n    description\n  }\n}',
+          	variables:null}
+     	}
+
+     
+  	})
+	</script>
+</dom-module>
